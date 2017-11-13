@@ -18,15 +18,11 @@ contract owned {
 }
 
 contract basicToken {
-    function totalSupply() constant returns (uint256 totalSupply) {}
-    function name() constant returns (string name) {}
-    function symbol() constant returns (string symbol) {}
-    function decimals() constant returns (uint8 decimals) {}
-    function balanceOf(address _owner) constant returns (uint256 balance) {}
-    function transfer(address _to, uint256 _value) returns (bool success) {}
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool success) {}
-    function approve(address _spender, uint256 _value) returns (bool success) {}
-    function allowance(address _owner, address _spender) constant returns (uint256 remaining) {}
+    function balanceOf(address) constant returns (uint256) {}
+    function transfer(address, uint256) returns (bool) {}
+    function transferFrom(address, address, uint256) returns (bool) {}
+    function approve(address, uint256) returns (bool) {}
+    function allowance(address, address) constant returns (uint256) {}
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
@@ -38,7 +34,7 @@ contract ERC20Standard is basicToken{
     mapping (address => uint256) public balances;
 
     /* Send coins */
-    function transfer(address _to, uint256 _value) {
+    function transfer(address _to, uint256 _value) returns (bool success){
         require (_to != 0x0);                               // Prevent transfer to 0x0 address
         require (balances[msg.sender] > _value);            // Check if the sender has enough
         require (balances[_to] + _value > balances[_to]);   // Check for overflows
@@ -48,7 +44,7 @@ contract ERC20Standard is basicToken{
     }
 
     /* Use admin powers to send from a users account */
-    function transferFrom(address _from, address _to, uint256 _value) {
+    function transferFrom(address _from, address _to, uint256 _value) returns (bool success){
         require (_to != 0x0);                               // Prevent transfer to 0x0 address
         require (balances[msg.sender] > _value);            // Check if the sender has enough
         require (balances[_to] + _value > balances[_to]);   // Check for overflows
@@ -100,14 +96,12 @@ contract HydroToken is ERC20Standard, owned{
     string public name = "Hydro Token";
     string public symbol = "H2O";
     uint8 public decimals = 18;
-    uint256 initialSupply = 10**9;
-    uint256 totalSupply = initialSupply * uint256(10**decimals);
+    uint256 public constant totalSupply = 10**9 * 10**18;
 
     /* This creates an array of all whitelisted addresses
      * Must be whitelisted to be able to utilize auth
      */
     mapping (address => bool) public whitelist;
-
     mapping (address => partnerValues) public partnerValuesMap;
     mapping (address => hydrogenValues) public hydrogenValuesMap;
 
@@ -127,7 +121,6 @@ contract HydroToken is ERC20Standard, owned{
        Restricted to whitelisted partners */
     function authenticate(address _to, uint256 _value, string data) {
         require(whitelist[msg.sender]);                     // Make sure the sender is whitelisted
-        _value = _value * (10 ** decimals);                 // Adjust for decimals
         require (_to != 0x0);                               // Prevent transfer to 0x0 address
         require (balances[msg.sender] > _value);            // Check if the sender has enough
         require (balances[_to] + _value > balances[_to]);   // Check for overflows
