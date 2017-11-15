@@ -79,8 +79,9 @@ contract ERC20Standard is basicToken{
 }
 
 contract HydroToken is ERC20Standard, owned{
-    event Authenticate(address indexed from, address indexed to, uint256 value, bytes data); // Event for when an address is authenticated
-    event Whitelist(address target, bool whitelist);                                         // Event for when an address is whitelisted to authenticate
+    event Authenticate(address indexed from, uint256 value, bytes data);     // Event for when an address is authenticated
+    event Whitelist(address target, bool whitelist);                         // Event for when an address is whitelisted to authenticate
+    event Burn(address indexed burner, uint256 value);                       // Event for when tokens are burned
 
     struct partnerValues {
         uint value;
@@ -96,7 +97,7 @@ contract HydroToken is ERC20Standard, owned{
     string public name = "Hydro Token";
     string public symbol = "H2O";
     uint8 public decimals = 18;
-    uint256 public constant totalSupply = 10**9 * 10**18;
+    uint256 public totalSupply;
 
     /* This creates an array of all whitelisted addresses
      * Must be whitelisted to be able to utilize auth
@@ -107,6 +108,7 @@ contract HydroToken is ERC20Standard, owned{
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
     function HydroToken(address ownerAddress) {
+        totalSupply = 10**9 * 10**18;
         balances[msg.sender] = totalSupply;                 // Give the creator all initial tokens
         if (ownerAddress != 0) owner = ownerAddress;        // Set the owner of the contract on creation
     }
@@ -119,14 +121,18 @@ contract HydroToken is ERC20Standard, owned{
 
     /* Function to authenticate user
        Restricted to whitelisted partners */
-    function authenticate(address _to, uint256 _value, string data) {
+    function authenticate(uint256 _value, string data) {
         require(whitelist[msg.sender]);                     // Make sure the sender is whitelisted
-        require (_to != 0x0);                               // Prevent transfer to 0x0 address
         require (balances[msg.sender] > _value);            // Check if the sender has enough
-        require (balances[_to] + _value > balances[_to]);   // Check for overflows
-        _transfer(msg.sender, _to, _value);
+        burn(msg.sender, _value);
         updatePartnerValuesMap(msg.sender, _value, data);
-        Authenticate(msg.sender, _to, _value, msg.data);
+        Authenticate(msg.sender, _value, msg.data);
+    }
+
+    function burn(address burner, uint256 _value) internal {
+        balances[burner] -= _value;
+        totalSupply -= _value;
+        Burn(burner, _value);
     }
 
     /* Function to update the partnerValuesMap with their amount and challenge string */
