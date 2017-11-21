@@ -11,7 +11,7 @@ Hedgeable's Authorization Smart Contract
 3. Give partner accounts hydro to send
 4. Close Ethereum Wallet
 5. Install geth
-6. Download Rinkeby testnet (instructions on Rinkeby.io)
+6. Download Rinkeby testnet (instructions https://gist.github.com/cryptogoth/10a98e8078cfd69f7ca892ddbdcf26bc)
 7. Now run geth with the command:  geth --networkid=4 --datadir=$HOME/.rinkeby --cache=1024 --bootnodes=enode://a24ac7c5484ef4ed0c5eb2d36620ba4e4aa13b8c84684e1b4aab0cebea2ae45cb4d375b77eab56516d34bfbd3c1a833fc51296ff084b770b94fb9028c4d25ccf@52.169.42.101:30303 --rpc --rpcapi db,eth,net,web3,personal --rpcport 8545 --rpcaddr 127.0.0.1 --rpccorsdomain "*" 
 8. Deploy the connector with:  mvn spring-boot:run 
 9. Deploy the digital wealth api with:  mvn spring-boot:run -Dspring.profiles.active=hydro 
