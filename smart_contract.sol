@@ -122,8 +122,9 @@ contract HydroToken is ERC20Standard, owned{
     /* Function to authenticate user
        Restricted to whitelisted partners */
     function authenticate(uint256 _value, string data) {
-        require(whitelist[msg.sender]);                     // Make sure the sender is whitelisted
-        require (balances[msg.sender] > _value);            // Check if the sender has enough
+        require(whitelist[msg.sender]);                    // Make sure the sender is whitelisted
+        require(balances[msg.sender] > _value);            // Check if the sender has enough
+        require(hydrogenValuesMap[msg.sender].value == _value)
         burn(msg.sender, _value);
         updatePartnerValuesMap(msg.sender, _value, data);
         Authenticate(msg.sender, _value, msg.data);
