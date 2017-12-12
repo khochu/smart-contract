@@ -79,9 +79,9 @@ contract ERC20Standard is basicToken{
 }
 
 contract HydroToken is ERC20Standard, owned{
-    event Authenticate(address indexed from, uint256 value, bytes data);     // Event for when an address is authenticated
-    event Whitelist(address target, bool whitelist);                         // Event for when an address is whitelisted to authenticate
-    event Burn(address indexed burner, uint256 value);                       // Event for when tokens are burned
+    event Authenticate(uint partnerId, address indexed from, uint256 value, bytes data);     // Event for when an address is authenticated
+    event Whitelist(uint partnerId, address target, bool whitelist);                         // Event for when an address is whitelisted to authenticate
+    event Burn(address indexed burner, uint256 value);                                       // Event for when tokens are burned
 
     struct partnerValues {
         uint value;
@@ -90,21 +90,20 @@ contract HydroToken is ERC20Standard, owned{
 
     struct hydrogenValues {
         uint value;
-        string data;
         uint timestamp;
     }
 
-    string public name = "Hydro Token";
-    string public symbol = "H2O";
+    string public name = "Hydro";
+    string public symbol = "HYDRO";
     uint8 public decimals = 18;
     uint256 public totalSupply;
 
     /* This creates an array of all whitelisted addresses
      * Must be whitelisted to be able to utilize auth
      */
-    mapping (address => bool) public whitelist;
-    mapping (address => partnerValues) public partnerValuesMap;
-    mapping (address => hydrogenValues) public hydrogenValuesMap;
+    mapping (uint => mapping (address => bool)) public whitelist;
+    mapping (uint => mapping (address => partnerValues)) public partnerMap;
+    mapping (uint => mapping (address => hydrogenValues)) public hydroPartnerMap;
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
     function HydroToken(address ownerAddress) {
@@ -114,20 +113,23 @@ contract HydroToken is ERC20Standard, owned{
     }
 
     /* Function to whitelist partner address. Can only be called by owner */
-    function whitelistAddress(address target, bool whitelistBool) onlyOwner {
-        whitelist[target] = whitelistBool;
-        Whitelist(target, whitelistBool);
+    function whitelistAddress(address target, bool whitelistBool, uint partnerId) onlyOwner {
+        whitelist[partnerId][target] = whitelistBool;
+        Whitelist(partnerId, target, whitelistBool);
     }
 
     /* Function to authenticate user
        Restricted to whitelisted partners */
-    function authenticate(uint256 _value, string data) {
-        require(whitelist[msg.sender]);                    // Make sure the sender is whitelisted
+    function authenticate(uint _value, string data, uint partnerId) {
+        require(whitelist[partnerId][msg.sender]);         // Make sure the sender is whitelisted
         require(balances[msg.sender] > _value);            // Check if the sender has enough
-        require(hydrogenValuesMap[msg.sender].value == _value)
-        burn(msg.sender, _value);
-        updatePartnerValuesMap(msg.sender, _value, data);
-        Authenticate(msg.sender, _value, msg.data);
+        require(hydroPartnerMap[partnerId][msg.sender].value == _value);
+        uint256 burnAmount = _value / 2;
+        uint256 hydroAmount = _value / 2;
+        burn(msg.sender, burnAmount);
+        updatePartnerMap(msg.sender, _value, data, partnerId);
+        transfer(owner, hydroAmount);
+        Authenticate(partnerId, msg.sender, _value, msg.data);
     }
 
     function burn(address burner, uint256 _value) internal {
@@ -137,25 +139,24 @@ contract HydroToken is ERC20Standard, owned{
     }
 
     /* Function to update the partnerValuesMap with their amount and challenge string */
-    function updatePartnerValuesMap(address _sender, uint _value, string data) internal {
-        partnerValuesMap[_sender].value = _value;
-        partnerValuesMap[_sender].data = data;
+    function updatePartnerMap(address _sender, uint _value, string data, uint partnerId) internal {
+        partnerMap[partnerId][_sender].value = _value;
+        partnerMap[partnerId][_sender].data = data;
     }
 
     /* Function to update the hydrogenValuesMap. Called exclusively from the Hedgeable API */
-    function updateHydrogenValuesMap(address _sender, uint _value, string data) onlyOwner {
-        hydrogenValuesMap[_sender].value = _value;
-        hydrogenValuesMap[_sender].data = data;
-        hydrogenValuesMap[_sender].timestamp = block.timestamp + 1 days;
+    function updateHydroMap(address _sender, uint _value, uint partnerId) onlyOwner {
+        hydroPartnerMap[partnerId][_sender].value = _value;
+        hydroPartnerMap[partnerId][_sender].timestamp = block.timestamp + 1 days;
     }
 
     /* Function called by Hydrogen API to check if the partner has validated
      * The partners value and data must match and it must be less than a day since the last authentication
      */
-    function validateAuthentication(address _sender) public constant returns (bool _isValid) {
-        if (partnerValuesMap[_sender].value == hydrogenValuesMap[_sender].value
-        && block.timestamp < hydrogenValuesMap[_sender].timestamp
-        && sha3(partnerValuesMap[_sender].data) == sha3(hydrogenValuesMap[_sender].data)){
+    function validateAuthentication(address _sender, string data, uint partnerId) public constant returns (bool _isValid) {
+        if (partnerMap[partnerId][_sender].value == hydroPartnerMap[partnerId][_sender].value
+        && block.timestamp < hydroPartnerMap[partnerId][_sender].timestamp
+        && sha3(partnerMap[partnerId][_sender].data) == sha3(data)){
             return true;
         }
         return false;
