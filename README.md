@@ -19,3 +19,10 @@ Hedgeable's Authorization Smart Contract
 11. Send transaction to the contract from partner wallet with appropriate amount and string
 12. Call /authenticate/hydro to receive your HydroToken
 13. Use the api as usual while including the header token X-Hydro-Token
+
+# Testing with Populus
+- All changes made to HydroToken.sol must be ported over to HydroTokenTest.sol (Currently populus does not support create contracts with arguments so we must manually set the owner)
+- Navigate to eh test folder in command line
+- $ populus compile
+- $ populus deploy --chain tester --no-wait-for-sync
+- $ pytest tests/
