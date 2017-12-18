@@ -124,18 +124,16 @@ contract HydroToken is ERC20Standard, owned{
         require(whitelist[partnerId][msg.sender]);         // Make sure the sender is whitelisted
         require(balances[msg.sender] > _value);            // Check if the sender has enough
         require(hydroPartnerMap[partnerId][msg.sender].value == _value);
-        uint256 burnAmount = _value / 2;
-        uint256 hydroAmount = _value / 2;
-        burn(msg.sender, burnAmount);
         updatePartnerMap(msg.sender, _value, data, partnerId);
-        transfer(owner, hydroAmount);
+        transfer(owner, _value);
         Authenticate(partnerId, msg.sender, _value, msg.data);
     }
 
-    function burn(address burner, uint256 _value) internal {
-        balances[burner] -= _value;
+    function burn(uint256 _value) onlyOwner {
+        require(balances[msg.sender] > _value);
+        balances[msg.sender] -= _value;
         totalSupply -= _value;
-        Burn(burner, _value);
+        Burn(msg.sender, _value);
     }
 
     /* Function to update the partnerValuesMap with their amount and challenge string */
