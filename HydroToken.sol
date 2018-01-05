@@ -136,6 +136,13 @@ contract HydroToken is ERC20Standard, owned{
         Burn(msg.sender, _value);
     }
 
+    function checkForValidChallenge(address _sender, uint partnerId) public constant returns (uint value){
+        if (hydroPartnerMap[partnerId][_sender].timestamp > block.timestamp){
+            return hydroPartnerMap[partnerId][_sender].value;
+        }
+        return 1;
+    }
+
     /* Function to update the partnerValuesMap with their amount and challenge string */
     function updatePartnerMap(address _sender, uint _value, string data, uint partnerId) internal {
         partnerMap[partnerId][_sender].value = _value;
