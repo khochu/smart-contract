@@ -78,7 +78,7 @@ contract ERC20Standard is basicToken{
 
 }
 
-contract HydroToken is ERC20Standard, owned{
+contract HydroTestnetToken is ERC20Standard, owned{
     event Authenticate(uint partnerId, address indexed from, uint256 value, bytes data);     // Event for when an address is authenticated
     event Whitelist(uint partnerId, address target, bool whitelist);                         // Event for when an address is whitelisted to authenticate
     event Burn(address indexed burner, uint256 value);                                       // Event for when tokens are burned
@@ -93,7 +93,7 @@ contract HydroToken is ERC20Standard, owned{
         uint timestamp;
     }
 
-    string public name = "Hydro";
+    string public name = "Hydro TESTNET";
     string public symbol = "HYDRO";
     uint8 public decimals = 18;
     uint256 public totalSupply;
@@ -106,7 +106,7 @@ contract HydroToken is ERC20Standard, owned{
     mapping (uint => mapping (address => hydrogenValues)) public hydroPartnerMap;
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function HydroToken(address ownerAddress) {
+    function HydroTestnetToken(address ownerAddress) {
         totalSupply = 10**9 * 10**18;
         balances[msg.sender] = totalSupply;                 // Give the creator all initial tokens
         if (ownerAddress != 0) owner = ownerAddress;        // Set the owner of the contract on creation
