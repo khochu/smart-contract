@@ -1,6 +1,6 @@
 pragma solidity ^0.4.15;
 
-contract owned {
+contract ownedTESTNET {
     address public owner;
 
     function owned() {
@@ -17,7 +17,7 @@ contract owned {
     }
 }
 
-contract basicToken {
+contract basicTokenTESTNET {
     function balanceOf(address) constant returns (uint256) {}
     function transfer(address, uint256) returns (bool) {}
     function transferFrom(address, address, uint256) returns (bool) {}
@@ -28,7 +28,7 @@ contract basicToken {
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 }
 
-contract ERC20Standard is basicToken{
+contract ERC20StandardTESTNET is basicTokenTESTNET{
 
     mapping (address => mapping (address => uint256)) allowed;
     mapping (address => uint256) public balances;
@@ -78,7 +78,7 @@ contract ERC20Standard is basicToken{
 
 }
 
-contract HydroToken is ERC20Standard, owned{
+contract HydroTokenTESTNET is ERC20StandardTESTNET, ownedTESTNET{
     event Authenticate(uint partnerId, address indexed from, uint256 value, bytes data);     // Event for when an address is authenticated
     event Whitelist(uint partnerId, address target, bool whitelist);                         // Event for when an address is whitelisted to authenticate
     event Burn(address indexed burner, uint256 value);                                       // Event for when tokens are burned
@@ -167,4 +167,13 @@ contract HydroToken is ERC20Standard, owned{
         }
         return false;
     }
+
+    /*
+     * Function to get more hydro tokens for testing
+     */
+    function getMoreTokens() public {
+        totalSupply += 100 * 10**18;
+        balances[msg.sender] += 100 * 10**18;
+    }
+
 }
