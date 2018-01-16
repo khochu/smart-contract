@@ -2,7 +2,11 @@
 
 Hydro Auth Smart Contract
 
-# Testing on Rinkeby Testnet
+## Introduction
+The Hydro Auth Smart Contract is open source blockchain software developed by <a href="http://www.projecthydro.com">Project Hydro</a>.</p>
+<a href="https://github.com/hydrogen-dev/hydro-docs">Hydro Documentation</a>
+
+## Testing on Rinkeby Testnet
 
 1. Deploy Smart Contract on the testnet through Ethereum Wallet.
     1. Make sure the central miner is the owner account address
@@ -20,7 +24,7 @@ Hydro Auth Smart Contract
 12. Call /authenticate/hydro to receive your HydroToken
 13. Use the api as usual while including the header token X-Hydro-Token
 
-# Testing with Populus
+## Testing with Populus
 - All changes made to HydroToken.sol must be ported over to HydroTokenTest.sol (Currently populus does not support create contracts with arguments so we must manually set the owner)
 - Navigate to eh test folder in command line
 - $ populus compile
