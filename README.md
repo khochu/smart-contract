@@ -1,6 +1,6 @@
 # smart-contract
 
-Hedgeable's Authorization Smart Contract
+Hydro Auth Smart Contract
 
 # Testing on Rinkeby Testnet
 
