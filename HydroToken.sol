@@ -107,7 +107,7 @@ contract HydroToken is ERC20Standard, owned{
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
     function HydroToken(address ownerAddress) {
-        totalSupply = 10**9 * 10**18;
+        totalSupply = 11111111111 * 10**18;
         balances[msg.sender] = totalSupply;                 // Give the creator all initial tokens
         if (ownerAddress != 0) owner = ownerAddress;        // Set the owner of the contract on creation
     }
