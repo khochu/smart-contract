@@ -3,7 +3,7 @@ pragma solidity ^0.4.15;
 contract owned {
     address public owner;
 
-    function owned() {
+    function owned() public {
         owner = msg.sender;
     }
 
@@ -12,17 +12,17 @@ contract owned {
         _;
     }
 
-    function transferOwnership(address newOwner) onlyOwner {
+    function transferOwnership(address newOwner) public onlyOwner {
         owner = newOwner;
     }
 }
 
 contract basicToken {
-    function balanceOf(address) constant returns (uint256) {}
-    function transfer(address, uint256) returns (bool) {}
-    function transferFrom(address, address, uint256) returns (bool) {}
-    function approve(address, uint256) returns (bool) {}
-    function allowance(address, address) constant returns (uint256) {}
+    function balanceOf(address) public view returns (uint256) {}
+    function transfer(address, uint256) public returns (bool) {}
+    function transferFrom(address, address, uint256) public returns (bool) {}
+    function approve(address, uint256) public returns (bool) {}
+    function allowance(address, address) public view returns (uint256) {}
 
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
@@ -34,7 +34,7 @@ contract ERC20Standard is basicToken{
     mapping (address => uint256) public balances;
 
     /* Send coins */
-    function transfer(address _to, uint256 _value) returns (bool success){
+    function transfer(address _to, uint256 _value) public returns (bool success){
         require (_to != 0x0);                               // Prevent transfer to 0x0 address
         require (balances[msg.sender] > _value);            // Check if the sender has enough
         require (balances[_to] + _value > balances[_to]);   // Check for overflows
@@ -44,7 +44,7 @@ contract ERC20Standard is basicToken{
     }
 
     /* Use admin powers to send from a users account */
-    function transferFrom(address _from, address _to, uint256 _value) returns (bool success){
+    function transferFrom(address _from, address _to, uint256 _value) public returns (bool success){
         require (_to != 0x0);                               // Prevent transfer to 0x0 address
         require (balances[msg.sender] > _value);            // Check if the sender has enough
         require (balances[_to] + _value > balances[_to]);   // Check for overflows
@@ -61,31 +61,31 @@ contract ERC20Standard is basicToken{
     }
 
     /* Get balance of an account */
-    function balanceOf(address _owner) constant returns (uint256 balance) {
+    function balanceOf(address _owner) public view returns (uint256 balance) {
         return balances[_owner];
     }
 
     /* Approve an address to have admin power to use transferFrom */
-    function approve(address _spender, uint256 _value) returns (bool success) {
+    function approve(address _spender, uint256 _value) public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
         return true;
     }
 
-    function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
+    function allowance(address _owner, address _spender) public view returns (uint256 remaining) {
         return allowed[_owner][_spender];
     }
 
 }
 
 contract HydroTestnetToken is ERC20Standard, owned{
-    event Authenticate(uint partnerId, address indexed from, uint256 value, bytes data);     // Event for when an address is authenticated
-    event Whitelist(uint partnerId, address target, bool whitelist);                         // Event for when an address is whitelisted to authenticate
-    event Burn(address indexed burner, uint256 value);                                       // Event for when tokens are burned
+    event Authenticate(uint partnerId, address indexed from, uint value);     // Event for when an address is authenticated
+    event Whitelist(uint partnerId, address target, bool whitelist);          // Event for when an address is whitelisted to authenticate
+    event Burn(address indexed burner, uint256 value);                        // Event for when tokens are burned
 
     struct partnerValues {
         uint value;
-        string data;
+        uint challenge;
     }
 
     struct hydrogenValues {
@@ -106,37 +106,37 @@ contract HydroTestnetToken is ERC20Standard, owned{
     mapping (uint => mapping (address => hydrogenValues)) public hydroPartnerMap;
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function HydroTestnetToken(address ownerAddress) {
-        totalSupply = 10**9 * 10**18;
+    function HydroTestnetToken(address ownerAddress) public {
+        totalSupply = 11111111111 * 10**18;
         balances[msg.sender] = totalSupply;                 // Give the creator all initial tokens
         if (ownerAddress != 0) owner = ownerAddress;        // Set the owner of the contract on creation
     }
 
     /* Function to whitelist partner address. Can only be called by owner */
-    function whitelistAddress(address target, bool whitelistBool, uint partnerId) onlyOwner {
+    function whitelistAddress(address target, bool whitelistBool, uint partnerId) public onlyOwner {
         whitelist[partnerId][target] = whitelistBool;
         Whitelist(partnerId, target, whitelistBool);
     }
 
     /* Function to authenticate user
        Restricted to whitelisted partners */
-    function authenticate(uint _value, string data, uint partnerId) {
+    function authenticate(uint _value, uint challenge, uint partnerId) public {
         require(whitelist[partnerId][msg.sender]);         // Make sure the sender is whitelisted
         require(balances[msg.sender] > _value);            // Check if the sender has enough
         require(hydroPartnerMap[partnerId][msg.sender].value == _value);
-        updatePartnerMap(msg.sender, _value, data, partnerId);
+        updatePartnerMap(msg.sender, _value, challenge, partnerId);
         transfer(owner, _value);
-        Authenticate(partnerId, msg.sender, _value, msg.data);
+        Authenticate(partnerId, msg.sender, _value);
     }
 
-    function burn(uint256 _value) onlyOwner {
+    function burn(uint256 _value) public onlyOwner {
         require(balances[msg.sender] > _value);
         balances[msg.sender] -= _value;
         totalSupply -= _value;
         Burn(msg.sender, _value);
     }
 
-    function checkForValidChallenge(address _sender, uint partnerId) public constant returns (uint value){
+    function checkForValidChallenge(address _sender, uint partnerId) public view returns (uint value){
         if (hydroPartnerMap[partnerId][_sender].timestamp > block.timestamp){
             return hydroPartnerMap[partnerId][_sender].value;
         }
@@ -144,13 +144,13 @@ contract HydroTestnetToken is ERC20Standard, owned{
     }
 
     /* Function to update the partnerValuesMap with their amount and challenge string */
-    function updatePartnerMap(address _sender, uint _value, string data, uint partnerId) internal {
+    function updatePartnerMap(address _sender, uint _value, uint challenge, uint partnerId) internal {
         partnerMap[partnerId][_sender].value = _value;
-        partnerMap[partnerId][_sender].data = data;
+        partnerMap[partnerId][_sender].challenge = challenge;
     }
 
     /* Function to update the hydrogenValuesMap. Called exclusively from the Hedgeable API */
-    function updateHydroMap(address _sender, uint _value, uint partnerId) onlyOwner {
+    function updateHydroMap(address _sender, uint _value, uint partnerId) public onlyOwner {
         hydroPartnerMap[partnerId][_sender].value = _value;
         hydroPartnerMap[partnerId][_sender].timestamp = block.timestamp + 1 days;
     }
@@ -158,10 +158,10 @@ contract HydroTestnetToken is ERC20Standard, owned{
     /* Function called by Hydrogen API to check if the partner has validated
      * The partners value and data must match and it must be less than a day since the last authentication
      */
-    function validateAuthentication(address _sender, string data, uint partnerId) public constant returns (bool _isValid) {
+    function validateAuthentication(address _sender, uint challenge, uint partnerId) public constant returns (bool _isValid) {
         if (partnerMap[partnerId][_sender].value == hydroPartnerMap[partnerId][_sender].value
         && block.timestamp < hydroPartnerMap[partnerId][_sender].timestamp
-        && sha3(partnerMap[partnerId][_sender].data) == sha3(data)){
+        && partnerMap[partnerId][_sender].challenge == challenge){
             return true;
         }
         return false;
