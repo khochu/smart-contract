@@ -1,5 +1,28 @@
 pragma solidity ^0.4.15;
 
+/*
+Copyright (c) 2016 Smart Contract Solutions, Inc.
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be included
+in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
 contract owned {
     address public owner;
 
@@ -106,27 +129,27 @@ contract HydroToken is ERC20Standard, owned{
     mapping (uint => mapping (address => hydrogenValues)) public hydroPartnerMap;
 
     /* Initializes contract with initial supply tokens to the creator of the contract */
-    function HydroToken(address ownerAddress) public {
-        totalSupply = 10**9 * 10**18;
+    function HydroToken(address _ownerAddress) public {
+        totalSupply = 11111111111 * 10**18;
         balances[msg.sender] = totalSupply;                 // Give the creator all initial tokens
-        if (ownerAddress != 0) owner = ownerAddress;        // Set the owner of the contract on creation
+        if (_ownerAddress != 0) owner = _ownerAddress;      // Set the owner of the contract on creation
     }
 
     /* Function to whitelist partner address. Can only be called by owner */
-    function whitelistAddress(address target, bool whitelistBool, uint partnerId) public onlyOwner {
-        whitelist[partnerId][target] = whitelistBool;
-        Whitelist(partnerId, target, whitelistBool);
+    function whitelistAddress(address _target, bool _whitelistBool, uint _partnerId) public onlyOwner {
+        whitelist[_partnerId][_target] = _whitelistBool;
+        Whitelist(_partnerId, _target, _whitelistBool);
     }
 
     /* Function to authenticate user
        Restricted to whitelisted partners */
-    function authenticate(uint _value, uint challenge, uint partnerId) public {
-        require(whitelist[partnerId][msg.sender]);         // Make sure the sender is whitelisted
-        require(balances[msg.sender] > _value);            // Check if the sender has enough
-        require(hydroPartnerMap[partnerId][msg.sender].value == _value);
-        updatePartnerMap(msg.sender, _value, challenge, partnerId);
+    function authenticate(uint _value, uint _challenge, uint _partnerId) public {
+        require(whitelist[_partnerId][msg.sender]);         // Make sure the sender is whitelisted
+        require(balances[msg.sender] > _value);             // Check if the sender has enough
+        require(hydroPartnerMap[_partnerId][msg.sender].value == _value);
+        updatePartnerMap(msg.sender, _value, _challenge, _partnerId);
         transfer(owner, _value);
-        Authenticate(partnerId, msg.sender, _value);
+        Authenticate(_partnerId, msg.sender, _value);
     }
 
     function burn(uint256 _value) public onlyOwner {
@@ -136,32 +159,32 @@ contract HydroToken is ERC20Standard, owned{
         Burn(msg.sender, _value);
     }
 
-    function checkForValidChallenge(address _sender, uint partnerId) public view returns (uint value){
-        if (hydroPartnerMap[partnerId][_sender].timestamp > block.timestamp){
-            return hydroPartnerMap[partnerId][_sender].value;
+    function checkForValidChallenge(address _sender, uint _partnerId) public view returns (uint value){
+        if (hydroPartnerMap[_partnerId][_sender].timestamp > block.timestamp){
+            return hydroPartnerMap[_partnerId][_sender].value;
         }
         return 1;
     }
 
     /* Function to update the partnerValuesMap with their amount and challenge string */
-    function updatePartnerMap(address _sender, uint _value, uint challenge, uint partnerId) internal {
-        partnerMap[partnerId][_sender].value = _value;
-        partnerMap[partnerId][_sender].challenge = challenge;
+    function updatePartnerMap(address _sender, uint _value, uint _challenge, uint _partnerId) internal {
+        partnerMap[_partnerId][_sender].value = _value;
+        partnerMap[_partnerId][_sender].challenge = _challenge;
     }
 
     /* Function to update the hydrogenValuesMap. Called exclusively from the Hedgeable API */
-    function updateHydroMap(address _sender, uint _value, uint partnerId) public onlyOwner {
-        hydroPartnerMap[partnerId][_sender].value = _value;
-        hydroPartnerMap[partnerId][_sender].timestamp = block.timestamp + 1 days;
+    function updateHydroMap(address _sender, uint _value, uint _partnerId) public onlyOwner {
+        hydroPartnerMap[_partnerId][_sender].value = _value;
+        hydroPartnerMap[_partnerId][_sender].timestamp = block.timestamp + 1 days;
     }
 
     /* Function called by Hydrogen API to check if the partner has validated
      * The partners value and data must match and it must be less than a day since the last authentication
      */
-    function validateAuthentication(address _sender, uint challenge, uint partnerId) public constant returns (bool _isValid) {
-        if (partnerMap[partnerId][_sender].value == hydroPartnerMap[partnerId][_sender].value
-        && block.timestamp < hydroPartnerMap[partnerId][_sender].timestamp
-        && partnerMap[partnerId][_sender].challenge == challenge){
+    function validateAuthentication(address _sender, uint _challenge, uint _partnerId) public constant returns (bool _isValid) {
+        if (partnerMap[_partnerId][_sender].value == hydroPartnerMap[_partnerId][_sender].value
+        && block.timestamp < hydroPartnerMap[_partnerId][_sender].timestamp
+        && partnerMap[_partnerId][_sender].challenge == _challenge){
             return true;
         }
         return false;
