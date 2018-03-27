@@ -3,7 +3,7 @@
 
 ## Introduction
 <p>The Hydro Smart Contract is open source blockchain software developed by <a href="http://www.projecthydro.com">Project Hydro</a>.</p>
-<p><a href="https://etherscan.io/address/0x12fb5d5802c3b284761d76c3e723ea913877afba">Hydro Contract Address</a></p></p>
+<p><a href="https://etherscan.io/token/0xebbdf302c940c6bfd49c6b165f457fdb324649bc" target="_blank">Hydro Contract Address</a></p></p>
 
 ## Documentation
 <p>Project Hydro has also created an API to interface with this smart contract:
